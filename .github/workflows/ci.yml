@@ -28,3 +28,15 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/app-img:${{ github.sha }}
           docker push ${{ secrets.DOCKER_USERNAME }}/app-img:latest
+
+      - name: login to ec2 instance
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_PEM_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/app-img:latest
+            docker stop app || true
+            docker rm app || true
+            docker run -d -p 80:5000 --name app ${{ secrets.DOCKER_USERNAME }}/app-img:latest 
